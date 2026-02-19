@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Evergreen Realty</title>
+<!-- Paystack JS SDK -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green:  #1a3028;
+    --green2: #254a38;
+    --green3: #2f6049;
+    --gold:   #c9a96e;
+    --cream:  #f5f0e8;
+    --cream2: #ede7d9;
+    --text:   #2a2a2a;
+    --muted:  #6b6b6b;
+    --white:  #ffffff;
+    --font:   'Georgia', 'Times New Roman', serif;
+    --sans:   'Helvetica Neue', Arial, sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: var(--font); color: var(--text); background: var(--cream); }
+
+  .container { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+  .section { padding: 96px 0; }
+  .section-label { font-family: var(--sans); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .section-title { font-size: clamp(28px, 4vw, 46px); font-weight: 400; color: var(--green); line-height: 1.2; margin-bottom: 20px; }
+  .section-sub { font-family: var(--sans); font-size: 16px; color: var(--muted); line-height: 1.7; max-width: 560px; }
+  .btn { display: inline-block; padding: 14px 36px; font-family: var(--sans); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; cursor: pointer; border: none; transition: all .3s; }
+  .btn-primary { background: var(--green); color: var(--cream); }
+  .btn-primary:hover { background: var(--green3); }
+  .btn-outline { background: transparent; color: var(--green); border: 1px solid var(--green); }
+  .btn-outline:hover { background: var(--green); color: var(--cream); }
+  .btn-gold { background: var(--gold); color: var(--white); }
+  .btn-gold:hover { background: #b8924f; }
+  .divider { width: 48px; height: 2px; background: var(--gold); margin: 20px 0 32px; }
+
+  /* Navbar */
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: var(--green); border-bottom: 1px solid var(--green3); transition: box-shadow .3s; }
+  nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.25); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .logo { font-size: 22px; letter-spacing: 1px; color: var(--cream); text-decoration: none; font-weight: 400; }
+  .logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a { font-family: var(--sans); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--cream2); text-decoration: none; transition: color .2s; padding-bottom: 2px; border-bottom: 1px solid transparent; }
+  .nav-links a:hover, .nav-links a.active { color: var(--gold); border-color: var(--gold); }
+  .nav-cta { display: flex; align-items: center; gap: 16px; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+  .hamburger span { width: 24px; height: 1.5px; background: var(--cream); display: block; }
+  .mobile-menu { display: none; position: absolute; top: 72px; left: 0; right: 0; background: var(--green); padding: 24px 32px 32px; border-top: 1px solid var(--green3); }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a { display: block; font-family: var(--sans); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--cream); text-decoration: none; padding: 14px 0; border-bottom: 1px solid var(--green3); }
+  .mobile-menu a:hover { color: var(--gold); }
+
+  .page { display: none; padding-top: 72px; }
+  .page.active { display: block; }
+
+  /* Hero */
+  .hero { background: var(--green); min-height: calc(100vh - 72px); display: flex; align-items: center; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=80') center/cover; opacity: .13; }
+  .hero-content { position: relative; max-width: 680px; }
+  .hero-eyebrow { font-family: var(--sans); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; }
+  .hero h1 { font-size: clamp(38px, 6vw, 72px); font-weight: 400; line-height: 1.1; color: var(--cream); margin-bottom: 24px; }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero p { font-family: var(--sans); font-size: 17px; color: var(--cream2); line-height: 1.8; margin-bottom: 40px; max-width: 480px; }
+  .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+  .hero-scroll { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .hero-scroll span { font-family: var(--sans); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--cream2); }
+  .scroll-line { width: 1px; height: 48px; background: var(--gold); animation: scrollPulse 2s ease-in-out infinite; }
+  @keyframes scrollPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+  .stats-bar { background: var(--green2); border-top: 1px solid var(--green3); border-bottom: 1px solid var(--green3); }
+  .stats-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .stat-item { padding: 36px 32px; text-align: center; border-right: 1px solid var(--green3); }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-size: 36px; color: var(--gold); display: block; margin-bottom: 6px; }
+  .stat-label { font-family: var(--sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--cream2); }
+
+  .featured { background: var(--cream); }
+  .featured-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 56px; flex-wrap: wrap; gap: 20px; }
+
+  /* Property Cards */
+  .prop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px; }
+  .prop-card { background: var(--white); overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,.06); transition: transform .3s, box-shadow .3s; }
+  .prop-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,.12); }
+  .prop-img { width: 100%; height: 220px; object-fit: cover; display: block; background: var(--cream2); }
+  .prop-badge { font-family: var(--sans); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; background: var(--green); color: var(--cream); display: inline-block; padding: 5px 12px; margin: 20px 20px 0; }
+  .prop-body { padding: 16px 20px 20px; }
+  .prop-title { font-size: 20px; color: var(--green); margin-bottom: 6px; font-weight: 400; }
+  .prop-loc { font-family: var(--sans); font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .prop-loc::before { content: '📍 '; }
+  .prop-price { font-size: 22px; color: var(--gold); margin-bottom: 16px; }
+  .prop-features { display: flex; gap: 16px; flex-wrap: wrap; font-family: var(--sans); font-size: 12px; color: var(--muted); margin-bottom: 20px; padding-top: 14px; border-top: 1px solid var(--cream2); }
+  .prop-features span { white-space: nowrap; }
+  .prop-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .prop-wa-btn, .prop-pay-btn { display: flex; align-items: center; justify-content: center; gap: 8px; border: none; padding: 14px 10px; cursor: pointer; font-family: var(--sans); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; transition: background .2s; }
+  .prop-wa-btn { background: #25d366; color: var(--white); }
+  .prop-wa-btn:hover { background: #1ebe5d; }
+  .prop-pay-btn { background: var(--green); color: var(--cream); }
+  .prop-pay-btn:hover { background: var(--green3); }
+  .wa-icon { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .why { background: var(--green); }
+  .why .section-title { color: var(--cream); }
+  .why .section-sub { color: var(--cream2); }
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 40px; margin-top: 56px; }
+  .why-card { border-left: 2px solid var(--gold); padding-left: 24px; }
+  .why-num { font-size: 48px; color: var(--gold); opacity: .25; line-height: 1; margin-bottom: 12px; font-style: italic; }
+  .why-title { font-size: 19px; color: var(--cream); margin-bottom: 10px; font-weight: 400; }
+  .why-desc { font-family: var(--sans); font-size: 14px; color: var(--cream2); line-height: 1.7; }
+
+  .cta-band { background: var(--cream2); padding: 80px 0; text-align: center; }
+  .cta-band p { font-family: var(--sans); font-size: 16px; color: var(--muted); max-width: 500px; margin: 0 auto 36px; }
+
+  /* Services */
+  .page-hero { background: var(--green); padding: 100px 0 80px; }
+  .page-hero .section-title { color: var(--cream); }
+  .page-hero .section-sub { color: var(--cream2); }
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2px; background: var(--cream2); }
+  .svc-card { background: var(--white); padding: 48px 40px; transition: background .3s; }
+  .svc-card:hover { background: var(--green); }
+  .svc-card:hover .svc-title { color: var(--cream); }
+  .svc-card:hover .svc-desc { color: var(--cream2); }
+  .svc-card:hover .svc-icon { filter: brightness(10); }
+  .svc-icon { font-size: 32px; margin-bottom: 20px; display: block; transition: .3s; }
+  .svc-title { font-size: 22px; color: var(--green); margin-bottom: 12px; font-weight: 400; transition: .3s; }
+  .svc-desc { font-family: var(--sans); font-size: 14px; color: var(--muted); line-height: 1.7; transition: .3s; }
+
+  .process { background: var(--cream2); }
+  .process-steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 32px; margin-top: 56px; counter-reset: steps; }
+  .step { position: relative; padding-top: 56px; }
+  .step::before { counter-increment: steps; content: counter(steps, decimal-leading-zero); position: absolute; top: 0; left: 0; font-size: 40px; color: var(--gold); opacity: .3; font-style: italic; }
+  .step-title { font-size: 18px; color: var(--green); margin-bottom: 10px; font-weight: 400; }
+  .step-desc { font-family: var(--sans); font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  /* Properties page */
+  .filter-bar { background: var(--cream2); padding: 28px 0; border-bottom: 1px solid var(--cream2); }
+  .filter-inner { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .filter-btn { font-family: var(--sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 22px; border: 1px solid var(--green); background: transparent; color: var(--green); cursor: pointer; transition: .2s; }
+  .filter-btn.active, .filter-btn:hover { background: var(--green); color: var(--cream); }
+  .filter-label { font-family: var(--sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+  .all-props { background: var(--cream); }
+  .props-count { font-family: var(--sans); font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+
+  /* About */
+  .about-story { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .about-img-wrap { position: relative; }
+  .about-img { width: 100%; height: 480px; object-fit: cover; background: var(--cream2); display: block; }
+  .about-img-tag { position: absolute; bottom: -24px; right: -24px; background: var(--gold); color: var(--white); padding: 20px 28px; text-align: center; font-family: var(--sans); }
+  .about-img-tag strong { font-size: 36px; display: block; font-weight: 400; }
+  .about-img-tag span { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+  .team { background: var(--cream2); }
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 28px; margin-top: 56px; }
+  .team-card { background: var(--white); overflow: hidden; }
+  .team-photo { width: 100%; height: 280px; object-fit: cover; background: var(--cream2); display: block; }
+  .team-info { padding: 20px; }
+  .team-name { font-size: 18px; color: var(--green); margin-bottom: 4px; font-weight: 400; }
+  .team-role { font-family: var(--sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
+  .values { background: var(--green); }
+  .values .section-title { color: var(--cream); }
+  .values-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 40px; margin-top: 56px; }
+  .val-item { text-align: center; padding: 32px 20px; border: 1px solid var(--green3); }
+  .val-icon { font-size: 36px; margin-bottom: 16px; }
+  .val-title { font-size: 18px; color: var(--cream); margin-bottom: 10px; font-weight: 400; }
+  .val-desc { font-family: var(--sans); font-size: 13px; color: var(--cream2); line-height: 1.7; }
+
+  /* ══ PAYMENT MODAL ══ */
+  .modal-overlay { display: none; position: fixed; inset: 0; z-index: 2000; background: rgba(10,20,15,.75); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--cream); max-width: 480px; width: 100%; position: relative; animation: modalIn .3s ease; }
+  @keyframes modalIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  .modal-header { background: var(--green); padding: 28px 32px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .modal-header h3 { font-size: 20px; color: var(--cream); font-weight: 400; line-height: 1.3; }
+  .modal-header p { font-family: var(--sans); font-size: 12px; color: var(--gold); margin-top: 4px; letter-spacing: 1px; }
+  .modal-close { background: none; border: none; color: var(--cream2); font-size: 24px; cursor: pointer; line-height: 1; padding: 0 0 0 16px; flex-shrink: 0; }
+  .modal-close:hover { color: var(--gold); }
+  .modal-body { padding: 32px; }
+  .modal-price-box { background: var(--cream2); border-left: 3px solid var(--gold); padding: 16px 20px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; }
+  .modal-price-label { font-family: var(--sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .modal-price-val { font-size: 22px; color: var(--green); }
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-family: var(--sans); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .form-group input { width: 100%; padding: 13px 16px; border: 1px solid var(--cream2); background: var(--white); font-family: var(--sans); font-size: 14px; color: var(--text); outline: none; transition: border .2s; }
+  .form-group input:focus { border-color: var(--green); }
+  .form-group input.error { border-color: #c0392b; }
+  .form-err { font-family: var(--sans); font-size: 11px; color: #c0392b; margin-top: 5px; display: none; }
+  .form-err.visible { display: block; }
+  .modal-notice { font-family: var(--sans); font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; padding: 12px 16px; background: var(--cream2); }
+  .modal-notice strong { color: var(--green); }
+  .btn-paystack { width: 100%; padding: 16px; background: var(--green); color: var(--cream); border: none; font-family: var(--sans); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; transition: background .2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .btn-paystack:hover { background: var(--green3); }
+  .btn-paystack:disabled { background: var(--muted); cursor: not-allowed; }
+  .paystack-badge { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-family: var(--sans); font-size: 11px; color: var(--muted); }
+  .modal-success { display: none; padding: 56px 32px; text-align: center; }
+  .modal-success.visible { display: block; }
+  .success-icon { font-size: 60px; margin-bottom: 16px; }
+  .modal-success h3 { font-size: 26px; color: var(--green); margin-bottom: 12px; font-weight: 400; }
+  .modal-success p { font-family: var(--sans); font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+
+  /* Footer */
+  footer { background: #0f1f18; padding: 64px 0 32px; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+  .footer-logo { font-size: 24px; color: var(--cream); margin-bottom: 16px; display: block; text-decoration: none; }
+  .footer-logo span { color: var(--gold); }
+  .footer-desc { font-family: var(--sans); font-size: 13px; color: #8a9e93; line-height: 1.7; }
+  .footer-heading { font-family: var(--sans); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+  .footer-links { list-style: none; }
+  .footer-links li { margin-bottom: 10px; }
+  .footer-links a { font-family: var(--sans); font-size: 13px; color: #8a9e93; text-decoration: none; transition: color .2s; }
+  .footer-links a:hover { color: var(--cream); }
+  .footer-contact p { font-family: var(--sans); font-size: 13px; color: #8a9e93; line-height: 1.8; }
+  .footer-bottom { border-top: 1px solid #1a2e23; padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-bottom p { font-family: var(--sans); font-size: 12px; color: #5a7065; }
+
+  @media (max-width: 900px) {
+    .stats-inner { grid-template-columns: repeat(2,1fr); }
+    .about-story { grid-template-columns: 1fr; gap: 40px; }
+    .about-img-tag { right: 0; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .nav-links, .nav-cta { display: none; }
+    .hamburger { display: flex; }
+    .stats-inner { grid-template-columns: repeat(2,1fr); }
+    .footer-grid { grid-template-columns: 1fr; }
+    .hero-btns { flex-direction: column; }
+    .modal-body { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="container nav-inner">
+    <a href="#" class="logo" onclick="showPage('home')">Ever<span>green</span> Realty</a>
+    <ul class="nav-links">
+      <li><a href="#" onclick="showPage('home')" id="nav-home" class="active">Home</a></li>
+      <li><a href="#" onclick="showPage('services')" id="nav-services">Services</a></li>
+      <li><a href="#" onclick="showPage('properties')" id="nav-properties">Properties</a></li>
+      <li><a href="#" onclick="showPage('about')" id="nav-about">About</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="https://wa.me/2340000000000?text=Hello%2C%20I%20would%20like%20to%20enquire%20about%20a%20property." target="_blank" class="btn btn-gold" style="padding:10px 24px;font-size:11px;letter-spacing:1.5px;">WhatsApp Us</a>
+    </div>
+    <div class="hamburger" onclick="toggleMobile()"><span></span><span></span><span></span></div>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="#" onclick="showPage('home');toggleMobile()">Home</a>
+    <a href="#" onclick="showPage('services');toggleMobile()">Services</a>
+    <a href="#" onclick="showPage('properties');toggleMobile()">Properties</a>
+    <a href="#" onclick="showPage('about');toggleMobile()">About</a>
+    <a href="https://wa.me/2340000000000" target="_blank" style="color:var(--gold)">WhatsApp Us ↗</a>
+  </div>
+</nav>
+
+<!-- ══════════ PAYMENT MODAL ══════════ -->
+<div class="modal-overlay" id="payment-modal" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal-box">
+
+    <!-- Form view -->
+    <div id="modal-form-section">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-prop-title">Property</h3>
+          <p id="modal-prop-type">Payment</p>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-price-box">
+          <span class="modal-price-label">Amount Due</span>
+          <span class="modal-price-val" id="modal-amount-display">₦0</span>
+        </div>
+        <div class="form-group">
+          <label for="pay-name">Full Name</label>
+          <input type="text" id="pay-name" placeholder="e.g. Amara Okafor" autocomplete="name"/>
+          <p class="form-err" id="err-name">Please enter your full name.</p>
+        </div>
+        <div class="form-group">
+          <label for="pay-email">Email Address</label>
+          <input type="email" id="pay-email" placeholder="e.g. amara@email.com" autocomplete="email"/>
+          <p class="form-err" id="err-email">Please enter a valid email address.</p>
+        </div>
+        <div class="form-group">
+          <label for="pay-phone">Phone Number</label>
+          <input type="tel" id="pay-phone" placeholder="e.g. 08012345678" autocomplete="tel"/>
+          <p class="form-err" id="err-phone">Please enter your phone number.</p>
+        </div>
+        <div class="modal-notice">
+          <strong>🔒 Secured by Paystack.</strong> Your payment is protected with bank-grade encryption. Our team will contact you within 24 hours of payment.
+        </div>
+        <button class="btn-paystack" onclick="initiatePayment()" id="pay-btn">
+          💳 &nbsp;Proceed to Pay
+        </button>
+        <div class="paystack-badge">
+          <span>Powered by</span>
+          <strong style="font-family:var(--sans);color:var(--green3);font-size:13px">Paystack</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success view -->
+    <div class="modal-success" id="modal-success-section">
+      <div class="success-icon">✅</div>
+      <h3>Payment Received!</h3>
+      <p>Thank you for your payment. A confirmation has been sent to your email. Our team will reach out within <strong>24 hours</strong> to walk you through the next steps.</p>
+      <button class="btn btn-primary" onclick="closeModal()" style="width:100%;padding:16px;">Close</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ HOME PAGE ══════════ -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <p class="hero-eyebrow">Premier Real Estate — Est. 2010</p>
+        <h1>Find Your <em>Perfect</em><br>Place to Call Home</h1>
+        <p>We connect discerning clients with exceptional properties across residential, commercial, and investment categories.</p>
+        <div class="hero-btns">
+          <a href="#" onclick="showPage('properties')" class="btn btn-gold">Browse Properties</a>
+          <a href="#" onclick="showPage('services')" class="btn btn-outline" style="color:var(--cream);border-color:var(--cream2);">Our Services</a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-scroll"><span>Scroll</span><div class="scroll-line"></div></div>
+  </section>
+
+  <div class="stats-bar">
+    <div class="container">
+      <div class="stats-inner">
+        <div class="stat-item"><span class="stat-num">500+</span><span class="stat-label">Properties Listed</span></div>
+        <div class="stat-item"><span class="stat-num">1,200+</span><span class="stat-label">Happy Clients</span></div>
+        <div class="stat-item"><span class="stat-num">15+</span><span class="stat-label">Years Experience</span></div>
+        <div class="stat-item"><span class="stat-num">98%</span><span class="stat-label">Client Satisfaction</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section featured">
+    <div class="container">
+      <div class="featured-header">
+        <div>
+          <p class="section-label">Hand-Picked Listings</p>
+          <h2 class="section-title">Featured Properties</h2>
+          <div class="divider"></div>
+        </div>
+        <a href="#" onclick="showPage('properties')" class="btn btn-outline">View All Properties</a>
+      </div>
+      <div class="prop-grid" id="featured-grid"></div>
+    </div>
+  </section>
+
+  <section class="section why">
+    <div class="container">
+      <p class="section-label">Why Evergreen</p>
+      <h2 class="section-title">A Legacy of Trust<br>& Excellence</h2>
+      <p class="section-sub">We go beyond transactions — we build long-term relationships grounded in transparency, expertise, and care.</p>
+      <div class="why-grid">
+        <div class="why-card"><div class="why-num">01</div><h3 class="why-title">Deep Market Knowledge</h3><p class="why-desc">15+ years of local market insight gives our clients a decisive edge in every deal.</p></div>
+        <div class="why-card"><div class="why-num">02</div><h3 class="why-title">Verified Listings Only</h3><p class="why-desc">Every property is thoroughly vetted for legal standing and structural integrity before listing.</p></div>
+        <div class="why-card"><div class="why-num">03</div><h3 class="why-title">Secure Online Payments</h3><p class="why-desc">Reserve or pay for any property directly on our site via Paystack — fast, safe, and fully encrypted.</p></div>
+        <div class="why-card"><div class="why-num">04</div><h3 class="why-title">Instant WhatsApp Access</h3><p class="why-desc">Reach our agents instantly via WhatsApp — no queues, no delays, just direct answers.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-band">
+    <div class="container">
+      <p class="section-label" style="text-align:center">Get In Touch</p>
+      <h2 class="section-title" style="text-align:center">Ready to Take the<br>Next Step?</h2>
+      <p>Browse our listings and pay securely online, or chat directly with an agent on WhatsApp.</p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <a href="#" onclick="showPage('properties')" class="btn btn-primary">Browse & Pay Online</a>
+        <a href="https://wa.me/2340000000000?text=Hello%2C%20I%20would%20like%20to%20enquire%20about%20a%20property." target="_blank" class="btn btn-outline">Chat on WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SERVICES PAGE ══════════ -->
+<div id="page-services" class="page">
+  <div class="page-hero">
+    <div class="container">
+      <p class="section-label">What We Do</p>
+      <h1 class="section-title">Our Services</h1>
+      <div class="divider"></div>
+      <p class="section-sub">Comprehensive real estate solutions tailored to buyers, sellers, investors, and businesses.</p>
+    </div>
+  </div>
+  <div class="services-grid">
+    <div class="svc-card"><span class="svc-icon">🏡</span><h3 class="svc-title">Residential Sales</h3><p class="svc-desc">We help individuals and families find and purchase homes that match their lifestyle, budget, and long-term goals — from starter apartments to luxury estates.</p></div>
+    <div class="svc-card"><span class="svc-icon">🏢</span><h3 class="svc-title">Commercial Leasing</h3><p class="svc-desc">Whether you need retail space, an office block, or a warehouse, we source and negotiate commercial properties that align with your business objectives.</p></div>
+    <div class="svc-card"><span class="svc-icon">📐</span><h3 class="svc-title">Land Acquisition</h3><p class="svc-desc">We identify and verify plots of land for residential development, agricultural use, or long-term investment — with full title documentation support.</p></div>
+    <div class="svc-card"><span class="svc-icon">🌴</span><h3 class="svc-title">Short-let & Vacation Rentals</h3><p class="svc-desc">We manage and list furnished short-let properties ideal for travellers, corporate guests, and anyone seeking a comfortable temporary residence.</p></div>
+    <div class="svc-card"><span class="svc-icon">📊</span><h3 class="svc-title">Property Management</h3><p class="svc-desc">We take the burden off landlords by handling tenant relations, maintenance, rent collection, and property upkeep on your behalf.</p></div>
+    <div class="svc-card"><span class="svc-icon">🔍</span><h3 class="svc-title">Valuation & Advisory</h3><p class="svc-desc">Our certified valuers provide accurate market assessments and investment advisory services to help you make data-driven real estate decisions.</p></div>
+  </div>
+  <section class="section process">
+    <div class="container">
+      <p class="section-label">How It Works</p>
+      <h2 class="section-title">Our Simple Process</h2>
+      <div class="divider"></div>
+      <div class="process-steps">
+        <div class="step"><h4 class="step-title">Initial Consultation</h4><p class="step-desc">We learn about your needs, budget, and preferences through a quick chat — on WhatsApp or in person.</p></div>
+        <div class="step"><h4 class="step-title">Property Matching</h4><p class="step-desc">Our team curates a shortlist of properties that best match your requirements from our verified database.</p></div>
+        <div class="step"><h4 class="step-title">Site Inspection</h4><p class="step-desc">We schedule and accompany you on property viewings, providing expert commentary along the way.</p></div>
+        <div class="step"><h4 class="step-title">Negotiation & Offer</h4><p class="step-desc">We negotiate the best price and terms on your behalf, leveraging our market knowledge for maximum value.</p></div>
+        <div class="step"><h4 class="step-title">Secure Payment</h4><p class="step-desc">Pay your reservation fee or full purchase amount securely online via Paystack — directly from the property listing.</p></div>
+        <div class="step"><h4 class="step-title">Key Handover</h4><p class="step-desc">We accompany you through final checks and the official handover — ensuring everything is exactly as agreed.</p></div>
+      </div>
+    </div>
+  </section>
+  <div class="cta-band">
+    <div class="container">
+      <p class="section-label" style="text-align:center">Start Today</p>
+      <h2 class="section-title" style="text-align:center">Not Sure Where to Begin?</h2>
+      <p>Message us on WhatsApp and we'll guide you — no commitment required.</p>
+      <a href="https://wa.me/2340000000000?text=Hello%2C%20I%20would%20like%20to%20know%20more%20about%20your%20services." target="_blank" class="btn btn-primary">Get Free Advice</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PROPERTIES PAGE ══════════ -->
+<div id="page-properties" class="page">
+  <div class="page-hero">
+    <div class="container">
+      <p class="section-label">Browse Listings</p>
+      <h1 class="section-title">All Properties</h1>
+      <div class="divider"></div>
+      <p class="section-sub">Explore our portfolio of verified properties. Pay securely online via Paystack or enquire on WhatsApp.</p>
+    </div>
+  </div>
+  <div class="filter-bar">
+    <div class="container">
+      <div class="filter-inner">
+        <span class="filter-label">Filter:</span>
+        <button class="filter-btn active" onclick="filterProps('all',this)">All</button>
+        <button class="filter-btn" onclick="filterProps('Residential',this)">Residential</button>
+        <button class="filter-btn" onclick="filterProps('Commercial',this)">Commercial</button>
+        <button class="filter-btn" onclick="filterProps('Land',this)">Land</button>
+        <button class="filter-btn" onclick="filterProps('Short-let',this)">Short-let</button>
+      </div>
+    </div>
+  </div>
+  <section class="section all-props">
+    <div class="container">
+      <p class="props-count" id="props-count">Showing all 8 properties</p>
+      <div class="prop-grid" id="all-props-grid"></div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════ ABOUT PAGE ══════════ -->
+<div id="page-about" class="page">
+  <div class="page-hero">
+    <div class="container">
+      <p class="section-label">Who We Are</p>
+      <h1 class="section-title">About Evergreen Realty</h1>
+      <div class="divider"></div>
+      <p class="section-sub">A trusted name in real estate since 2010, built on integrity, expertise, and genuine care for our clients.</p>
+    </div>
+  </div>
+  <section class="section">
+    <div class="container">
+      <div class="about-story">
+        <div class="about-img-wrap">
+          <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80" alt="Our Story" class="about-img">
+          <div class="about-img-tag"><strong>15+</strong><span>Years in Business</span></div>
+        </div>
+        <div>
+          <p class="section-label">Our Story</p>
+          <h2 class="section-title">Built on Relationships,<br>Not Just Transactions</h2>
+          <div class="divider"></div>
+          <p style="font-family:var(--sans);font-size:15px;color:var(--muted);line-height:1.8;margin-bottom:20px;">Evergreen Realty was founded on a simple belief: finding the right property should be joyful, not stressful. Since 2010, we have served over 1,200 clients, earning a reputation for honesty and care.</p>
+          <p style="font-family:var(--sans);font-size:15px;color:var(--muted);line-height:1.8;margin-bottom:32px;">From a modest two-person agency, we've grown into a full-service firm with specialists across every category — all united by the same commitment to putting clients first.</p>
+          <a href="https://wa.me/2340000000000" target="_blank" class="btn btn-primary">Get in Touch</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section values">
+    <div class="container">
+      <p class="section-label" style="color:var(--gold)">What We Stand For</p>
+      <h2 class="section-title">Our Core Values</h2>
+      <div class="divider"></div>
+      <div class="values-grid">
+        <div class="val-item"><div class="val-icon">🤝</div><h3 class="val-title">Integrity</h3><p class="val-desc">Transparent in all dealings — no hidden fees, no false listings, no empty promises.</p></div>
+        <div class="val-item"><div class="val-icon">💡</div><h3 class="val-title">Expertise</h3><p class="val-desc">Deep market knowledge and professional training brought to every client engagement.</p></div>
+        <div class="val-item"><div class="val-icon">❤️</div><h3 class="val-title">Client-First</h3><p class="val-desc">Every decision we make is guided by what is truly best for our clients, not our commission.</p></div>
+        <div class="val-item"><div class="val-icon">🔒</div><h3 class="val-title">Secure Payments</h3><p class="val-desc">Fast, encrypted, bank-grade online payments for all property transactions via Paystack.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="section team">
+    <div class="container">
+      <p class="section-label">The People Behind It</p>
+      <h2 class="section-title">Meet the Team</h2>
+      <div class="divider"></div>
+      <div class="team-grid">
+        <div class="team-card"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" alt="CEO" class="team-photo"><div class="team-info"><h4 class="team-name">Chukwuemeka Adeyemi</h4><p class="team-role">Founder & CEO</p></div></div>
+        <div class="team-card"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80" alt="Director" class="team-photo"><div class="team-info"><h4 class="team-name">Amara Okafor</h4><p class="team-role">Director of Sales</p></div></div>
+        <div class="team-card"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" alt="Agent" class="team-photo"><div class="team-info"><h4 class="team-name">Tunde Fashola</h4><p class="team-role">Senior Property Agent</p></div></div>
+        <div class="team-card"><img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80" alt="Valuations" class="team-photo"><div class="team-info"><h4 class="team-name">Ngozi Eze</h4><p class="team-role">Head of Valuations</p></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="#" class="footer-logo" onclick="showPage('home')">Ever<span>green</span> Realty</a>
+        <p class="footer-desc">A premier real estate agency dedicated to connecting exceptional people with exceptional properties since 2010.</p>
+      </div>
+      <div>
+        <p class="footer-heading">Navigation</p>
+        <ul class="footer-links">
+          <li><a href="#" onclick="showPage('home')">Home</a></li>
+          <li><a href="#" onclick="showPage('services')">Services</a></li>
+          <li><a href="#" onclick="showPage('properties')">Properties</a></li>
+          <li><a href="#" onclick="showPage('about')">About Us</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-heading">Property Types</p>
+        <ul class="footer-links">
+          <li><a href="#" onclick="showPage('properties');filterProps('Residential',null)">Residential</a></li>
+          <li><a href="#" onclick="showPage('properties');filterProps('Commercial',null)">Commercial</a></li>
+          <li><a href="#" onclick="showPage('properties');filterProps('Land',null)">Land &amp; Plots</a></li>
+          <li><a href="#" onclick="showPage('properties');filterProps('Short-let',null)">Short-let</a></li>
+        </ul>
+      </div>
+      <div class="footer-contact">
+        <p class="footer-heading">Contact</p>
+        <p>
+          📍 14 Victoria Island, Lagos<br><br>
+          📞 +234 000 000 0000<br><br>
+          ✉️ hello@evergreenrealty.com<br><br>
+          <a href="https://wa.me/2340000000000" target="_blank" style="color:var(--gold);text-decoration:none;font-family:var(--sans);font-size:13px;">💬 WhatsApp Us ↗</a>
+        </p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Evergreen Realty. All rights reserved.</p>
+      <p style="color:var(--gold)">Payments secured by Paystack 🔒</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════
+   ★  CONFIGURATION — UPDATE THESE TWO LINES
+══════════════════════════════════════════ */
+const PAYSTACK_PUBLIC_KEY = 'pk_test_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+// ↑ Replace with your Paystack Public Key from dashboard.paystack.com
+
+const WA_NUMBER = '2340000000000';
+// ↑ Replace with your WhatsApp Business number (country code + number, no + or spaces)
+// Example Nigeria: '2348012345678'
+
+/* ══════════════════════════════════════════
+   PROPERTY LISTINGS
+   Edit this array to add/remove/change listings.
+
+   amountKobo = price in KOBO (multiply Naira × 100)
+   payLabel   = label shown in payment modal
+══════════════════════════════════════════ */
+const properties = [
+  {
+    id: 1, type: 'Residential', badge: 'For Sale',
+    title: '4-Bedroom Detached Duplex',
+    location: 'Lekki Phase 1, Lagos',
+    price: '₦85,000,000',
+    amountKobo: 8500000000,
+    payLabel: 'Full Purchase',
+    features: ['4 Beds', '3 Baths', '280 m²', 'Garden'],
+    img: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=70',
+    msg: 'Hello, I am interested in the 4-Bedroom Detached Duplex in Lekki Phase 1 (ID: 1). Please send more details.',
+  },
+  {
+    id: 2, type: 'Commercial', badge: 'To Let',
+    title: 'Prime Office Space — Open Plan',
+    location: 'Victoria Island, Lagos',
+    price: '₦12,000,000 / yr',
+    amountKobo: 1200000000,
+    payLabel: 'Annual Lease Payment',
+    features: ['500 m²', '2 Floors', 'Parking', 'Gen Incl.'],
+    img: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&q=70',
+    msg: 'Hello, I am interested in the Prime Office Space on Victoria Island (ID: 2). Please send more details.',
+  },
+  {
+    id: 3, type: 'Land', badge: 'For Sale',
+    title: 'Dry Land — Residential Plot',
+    location: 'Ibeju-Lekki, Lagos',
+    price: '₦18,500,000',
+    amountKobo: 1850000000,
+    payLabel: 'Full Purchase',
+    features: ['600 m²', 'C of O', 'Gated Estate', 'Corner Piece'],
+    img: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&q=70',
+    msg: 'Hello, I am interested in the Residential Land in Ibeju-Lekki (ID: 3). Please send more details.',
+  },
+  {
+    id: 4, type: 'Short-let', badge: 'Short-let',
+    title: 'Luxury 2-Bedroom Apartment',
+    location: 'Eko Atlantic, Lagos',
+    price: '₦150,000 / night',
+    amountKobo: 15000000,
+    payLabel: 'Per Night Booking',
+    features: ['2 Beds', '2 Baths', 'Pool View', 'Smart Home'],
+    img: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&q=70',
+    msg: 'Hello, I am interested in the Luxury Short-let Apartment at Eko Atlantic (ID: 4). Please send more details.',
+  },
+  {
+    id: 5, type: 'Residential', badge: 'For Sale',
+    title: '3-Bedroom Terrace House',
+    location: 'Chevron Drive, Lagos',
+    price: '₦55,000,000',
+    amountKobo: 5500000000,
+    payLabel: 'Full Purchase',
+    features: ['3 Beds', '3 Baths', '180 m²', 'BQ'],
+    img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=70',
+    msg: 'Hello, I am interested in the 3-Bedroom Terrace House on Chevron Drive (ID: 5). Please send more details.',
+  },
+  {
+    id: 6, type: 'Commercial', badge: 'For Sale',
+    title: 'Retail Plaza — Ground Floor',
+    location: 'Ikeja GRA, Lagos',
+    price: '₦200,000,000',
+    amountKobo: 20000000000,
+    payLabel: 'Full Purchase',
+    features: ['1,200 m²', 'High Footfall', 'Parking', 'Frontage'],
+    img: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?w=600&q=70',
+    msg: 'Hello, I am interested in the Retail Plaza in Ikeja GRA (ID: 6). Please send more details.',
+  },
+  {
+    id: 7, type: 'Land', badge: 'For Sale',
+    title: 'Commercial Land — High-Traffic',
+    location: 'Ojodu Berger, Lagos',
+    price: '₦45,000,000',
+    amountKobo: 4500000000,
+    payLabel: 'Full Purchase',
+    features: ['1,000 m²', 'Survey Done', 'Corner Plot', 'Fenced'],
+    img: 'https://images.unsplash.com/photo-1475070929565-c985b496cb9f?w=600&q=70',
+    msg: 'Hello, I am interested in the Commercial Land in Ojodu Berger (ID: 7). Please send more details.',
+  },
+  {
+    id: 8, type: 'Short-let', badge: 'Short-let',
+    title: 'Cosy Studio — City Centre',
+    location: 'Yaba, Lagos',
+    price: '₦35,000 / night',
+    amountKobo: 3500000,
+    payLabel: 'Per Night Booking',
+    features: ['Studio', '1 Bath', 'Wi-Fi', 'A/C'],
+    img: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=70',
+    msg: 'Hello, I am interested in the Studio Short-let in Yaba (ID: 8). Please send more details.',
+  },
+];
+
+/* ══════════════════════════════════════════
+   BUILD CARD HTML
+══════════════════════════════════════════ */
+function buildCard(p) {
+  const waLink = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(p.msg)}`;
+  const feats  = p.features.map(f => `<span>• ${f}</span>`).join('');
+  return `
+    <div class="prop-card" data-type="${p.type}">
+      <img src="${p.img}" alt="${p.title}" class="prop-img" loading="lazy">
+      <span class="prop-badge">${p.badge}</span>
+      <div class="prop-body">
+        <h3 class="prop-title">${p.title}</h3>
+        <p class="prop-loc">${p.location}</p>
+        <p class="prop-price">${p.price}</p>
+        <div class="prop-features">${feats}</div>
+      </div>
+      <div class="prop-actions">
+        <a href="${waLink}" target="_blank" class="prop-wa-btn">
+          <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.553 4.118 1.522 5.855L0 24l6.335-1.492A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.368l-.36-.213-3.73.878.944-3.633-.235-.374A9.818 9.818 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+          </svg>
+          Enquire
+        </a>
+        <button class="prop-pay-btn" onclick="openPayModal(${p.id})">
+          💳 Pay Now
+        </button>
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════ */
+function renderFeatured() {
+  const g = document.getElementById('featured-grid');
+  if (g) g.innerHTML = properties.slice(0,3).map(buildCard).join('');
+}
+function renderAll() {
+  const g = document.getElementById('all-props-grid');
+  if (g) g.innerHTML = properties.map(buildCard).join('');
+}
+
+/* ══════════════════════════════════════════
+   FILTER
+══════════════════════════════════════════ */
+function filterProps(type, btn) {
+  if (btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  let count = 0;
+  document.querySelectorAll('#all-props-grid .prop-card').forEach(card => {
+    const show = type === 'all' || card.dataset.type === type;
+    card.style.display = show ? '' : 'none';
+    if (show) count++;
+  });
+  const label = type === 'all' ? 'all' : type.toLowerCase();
+  document.getElementById('props-count').textContent =
+    `Showing ${count} ${label} propert${count === 1 ? 'y' : 'ies'}`;
+}
+
+/* ══════════════════════════════════════════
+   PAYMENT MODAL
+══════════════════════════════════════════ */
+let currentProp = null;
+
+function openPayModal(id) {
+  currentProp = properties.find(p => p.id === id);
+  if (!currentProp) return;
+
+  // Reset
+  document.getElementById('modal-form-section').style.display = '';
+  document.getElementById('modal-success-section').classList.remove('visible');
+  ['pay-name','pay-email','pay-phone'].forEach(i => {
+    const el = document.getElementById(i);
+    el.value = '';
+    el.classList.remove('error');
+  });
+  ['err-name','err-email','err-phone'].forEach(i =>
+    document.getElementById(i).classList.remove('visible')
+  );
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = false;
+  btn.innerHTML = '💳 &nbsp;Proceed to Pay';
+
+  // Populate
+  document.getElementById('modal-prop-title').textContent  = currentProp.title;
+  document.getElementById('modal-prop-type').textContent   = `${currentProp.payLabel}  •  ${currentProp.location}`;
+  document.getElementById('modal-amount-display').textContent = currentProp.price;
+
+  document.getElementById('payment-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('payment-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  currentProp = null;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('payment-modal')) closeModal();
+}
+
+function validate() {
+  let ok = true;
+  const rules = [
+    { id: 'pay-name',  err: 'err-name',  test: v => v.trim().length >= 2 },
+    { id: 'pay-email', err: 'err-email', test: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) },
+    { id: 'pay-phone', err: 'err-phone', test: v => v.trim().length >= 7 },
+  ];
+  rules.forEach(r => {
+    const val = document.getElementById(r.id).value;
+    const pass = r.test(val);
+    document.getElementById(r.id).classList.toggle('error', !pass);
+    document.getElementById(r.err).classList.toggle('visible', !pass);
+    if (!pass) ok = false;
+  });
+  return ok;
+}
+
+function initiatePayment() {
+  if (!validate() || !currentProp) return;
+
+  const name  = document.getElementById('pay-name').value.trim();
+  const email = document.getElementById('pay-email').value.trim();
+  const phone = document.getElementById('pay-phone').value.trim();
+
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ &nbsp;Connecting to Paystack…';
+
+  const handler = PaystackPop.setup({
+    key:      PAYSTACK_PUBLIC_KEY,
+    email:    email,
+    amount:   currentProp.amountKobo,
+    currency: 'NGN',
+    ref:      'EVGR-' + currentProp.id + '-' + Date.now(),
+    metadata: {
+      custom_fields: [
+        { display_name: 'Customer Name', variable_name: 'customer_name', value: name  },
+        { display_name: 'Phone Number',  variable_name: 'phone',         value: phone },
+        { display_name: 'Property',      variable_name: 'property',      value: currentProp.title },
+        { display_name: 'Property ID',   variable_name: 'prop_id',       value: String(currentProp.id) },
+        { display_name: 'Payment Type',  variable_name: 'pay_type',      value: currentProp.payLabel },
+      ]
+    },
+    callback: function() {
+      document.getElementById('modal-form-section').style.display = 'none';
+      document.getElementById('modal-success-section').classList.add('visible');
+    },
+    onClose: function() {
+      btn.disabled = false;
+      btn.innerHTML = '💳 &nbsp;Proceed to Pay';
+    }
+  });
+
+  handler.openIframe();
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════ */
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const el = document.getElementById('nav-' + page);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+});
+
+function toggleMobile() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+
+/* INIT */
+renderFeatured();
+renderAll();
+</script>
+</body>
+</html>
